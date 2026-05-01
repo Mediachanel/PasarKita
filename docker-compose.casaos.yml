@@ -1,0 +1,17 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pasarkita-app
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    env_file:
+      - .env.casaos
+    networks:
+      - pasarkita-network
+
+networks:
+  pasarkita-network:
+    external: true
