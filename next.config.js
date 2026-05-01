@@ -1,8 +1,14 @@
 /** @type {import('next').NextConfig} */
+const isGithubPages = process.env.GITHUB_PAGES === "true";
+
 const nextConfig = {
-  output: "export",
-  basePath: "/PasarKita",
-  assetPrefix: "/PasarKita/",
+  ...(isGithubPages
+    ? {
+        output: "export",
+        basePath: "/PasarKita",
+        assetPrefix: "/PasarKita/",
+      }
+    : {}),
   trailingSlash: true,
   reactStrictMode: true,
   images: {
