@@ -54,6 +54,32 @@ docker network create pasarkita-network
 docker network connect pasarkita-network pasarkita-postgres
 ```
 
+Skrip deploy akan mencoba membuat role dan database berikut di container PostgreSQL yang sudah ada:
+
+```text
+Database: pasarkita
+User: pasarkita
+Password: Tianh@27
+```
+
+Jika nama container PostgreSQL di CasaOS berbeda, jalankan deploy dengan:
+
+```bash
+sh deploy-casaos-github.sh --postgres-container NAMA_CONTAINER_POSTGRES --force-env --nextauth-url http://172.31.254.202:3002
+```
+
+Jika Anda ingin memakai database atau kredensial lain:
+
+```bash
+sh deploy-casaos-github.sh \
+  --app-db-name pasarkita \
+  --app-db-user pasarkita \
+  --app-db-password 'Tianh@27' \
+  --database-url 'postgresql://pasarkita:Tianh%4027@pasarkita-postgres:5432/pasarkita?schema=public' \
+  --force-env \
+  --nextauth-url http://172.31.254.202:3002
+```
+
 ## App Environment
 
 Skrip membuat file env di `/DATA/AppData/pasarkita/.env.casaos` dan menyalinnya ke folder source saat deploy:

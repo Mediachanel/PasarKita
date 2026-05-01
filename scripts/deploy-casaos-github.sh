@@ -10,6 +10,11 @@ NEXTAUTH_URL="${NEXTAUTH_URL:-}"
 NEXTAUTH_SECRET="${NEXTAUTH_SECRET:-}"
 NETWORK_NAME="${NETWORK_NAME:-pasarkita-network}"
 POSTGRES_CONTAINER="${POSTGRES_CONTAINER:-pasarkita-postgres}"
+POSTGRES_ADMIN_USER="${POSTGRES_ADMIN_USER:-postgres}"
+APP_DB_NAME="${APP_DB_NAME:-pasarkita}"
+APP_DB_USER="${APP_DB_USER:-pasarkita}"
+APP_DB_PASSWORD="${APP_DB_PASSWORD:-Tianh@27}"
+ENSURE_DATABASE="${ENSURE_DATABASE:-1}"
 MIGRATE="${MIGRATE:-deploy}"
 SEED="${SEED:-0}"
 FORCE_ENV="${FORCE_ENV:-0}"
@@ -40,6 +45,11 @@ Options:
   --nextauth-secret VALUE     NEXTAUTH_SECRET
   --network-name NAME         Docker network
   --postgres-container NAME   Nama container PostgreSQL
+  --postgres-admin-user NAME  User admin PostgreSQL untuk membuat database
+  --app-db-name NAME          Nama database aplikasi
+  --app-db-user NAME          User database aplikasi
+  --app-db-password VALUE     Password user database aplikasi
+  --skip-db-create            Jangan buat user/database PostgreSQL otomatis
   --migrate deploy|push|none  Mode migrasi Prisma
   --seed                      Jalankan seed data setelah migrate
   --force-env                 Tulis ulang .env.casaos
@@ -97,6 +107,30 @@ while [ $# -gt 0 ]; do
       need_value "$@"
       POSTGRES_CONTAINER="$2"
       shift 2
+      ;;
+    --postgres-admin-user)
+      need_value "$@"
+      POSTGRES_ADMIN_USER="$2"
+      shift 2
+      ;;
+    --app-db-name)
+      need_value "$@"
+      APP_DB_NAME="$2"
+      shift 2
+      ;;
+    --app-db-user)
+      need_value "$@"
+      APP_DB_USER="$2"
+      shift 2
+      ;;
+    --app-db-password)
+      need_value "$@"
+      APP_DB_PASSWORD="$2"
+      shift 2
+      ;;
+    --skip-db-create)
+      ENSURE_DATABASE="0"
+      shift
       ;;
     --migrate)
       need_value "$@"
@@ -246,6 +280,33 @@ connect_postgres_network() {
   fi
 }
 
+ensure_postgres_database() {
+  [ "$ENSURE_DATABASE" = "1" ] || return 0
+
+  if ! docker ps -a --format '{{.Names}}' | grep -qx "$POSTGRES_CONTAINER"; then
+    log "Peringatan: database tidak dibuat karena container PostgreSQL '$POSTGRES_CONTAINER' tidak ditemukan."
+    return 0
+  fi
+
+  log "Memastikan database PostgreSQL '$APP_DB_NAME' dan user '$APP_DB_USER' tersedia..."
+  docker exec -i "$POSTGRES_CONTAINER" psql -v ON_ERROR_STOP=1 -U "$POSTGRES_ADMIN_USER" -d postgres <<SQL
+DO \$\$
+BEGIN
+  IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '$APP_DB_USER') THEN
+    CREATE ROLE "$APP_DB_USER" LOGIN PASSWORD '$APP_DB_PASSWORD';
+  ELSE
+    ALTER ROLE "$APP_DB_USER" WITH LOGIN PASSWORD '$APP_DB_PASSWORD';
+  END IF;
+END
+\$\$;
+
+SELECT 'CREATE DATABASE "$APP_DB_NAME" OWNER "$APP_DB_USER"'
+WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '$APP_DB_NAME')\gexec
+
+GRANT ALL PRIVILEGES ON DATABASE "$APP_DB_NAME" TO "$APP_DB_USER";
+SQL
+}
+
 run_migration() {
   [ "$MIGRATE" != "none" ] || return 0
 
@@ -274,6 +335,7 @@ write_env_file
 cp "$APP_DIR/.env.casaos" "$SOURCE_DIR/.env.casaos"
 
 connect_postgres_network
+ensure_postgres_database
 
 log "Build dan start container..."
 cd "$SOURCE_DIR"
