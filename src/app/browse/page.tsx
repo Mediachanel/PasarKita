@@ -85,6 +85,29 @@ export default function BrowsePage() {
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   useEffect(() => {
+    if (!showMobileFilters) {
+      document.body.style.overflow = "";
+      return;
+    }
+
+    const mediaQuery = window.matchMedia("(min-width: 1024px)");
+    const closeOnDesktop = () => {
+      if (mediaQuery.matches) {
+        setShowMobileFilters(false);
+      }
+    };
+
+    closeOnDesktop();
+    document.body.style.overflow = "hidden";
+    mediaQuery.addEventListener("change", closeOnDesktop);
+
+    return () => {
+      document.body.style.overflow = "";
+      mediaQuery.removeEventListener("change", closeOnDesktop);
+    };
+  }, [showMobileFilters]);
+
+  useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
     const categoryParam = searchParams.get("category");
     const searchParam = searchParams.get("search");
@@ -430,8 +453,14 @@ export default function BrowsePage() {
         </section>
 
         {showMobileFilters && (
-          <div className="fixed inset-0 z-[60] bg-gray-900/40 lg:hidden">
-            <div className="ml-auto h-full w-full max-w-sm overflow-y-auto bg-marketplace-canvas p-4 shadow-xl">
+          <div
+            className="fixed inset-0 z-[60] bg-gray-900/40 lg:hidden"
+            onClick={() => setShowMobileFilters(false)}
+          >
+            <div
+              className="ml-auto h-full w-full max-w-sm overflow-y-auto bg-marketplace-canvas p-4 shadow-xl"
+              onClick={(event) => event.stopPropagation()}
+            >
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-lg font-extrabold">Filter Produk</h2>
                 <button
