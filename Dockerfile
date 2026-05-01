@@ -8,6 +8,7 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV DATABASE_URL=postgresql://pasarkita:pasarkita@localhost:5432/pasarkita?schema=public
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
