@@ -220,6 +220,25 @@ Aplikasi fully responsive dengan breakpoints:
 
 ## 🚀 Deployment
 
+### CasaOS / DietPi / Docker
+
+Deployment CasaOS yang aktif memakai port host `3002`:
+
+```text
+http://172.31.254.202:3002
+```
+
+Deploy dari GitHub:
+
+```bash
+mkdir -p /DATA/AppData/pasarkita
+cd /DATA/AppData/pasarkita
+curl -fsSL https://raw.githubusercontent.com/Mediachanel/PasarKita/main/scripts/deploy-casaos-github.sh -o deploy-casaos-github.sh
+sh deploy-casaos-github.sh --install-deps --force-env --nextauth-url http://172.31.254.202:3002 --migrate push --seed
+```
+
+Detail lengkap ada di [CasaOS Deployment](docs/CASAOS.md).
+
 ### Vercel (Recommended)
 ```bash
 npx vercel deploy
@@ -234,6 +253,7 @@ docker run -p 3000:3000 pasar-kita
 ## 📖 Documentation
 
 - [API Documentation](docs/API.md)
+- [CasaOS Deployment](docs/CASAOS.md)
 - [Database Schema](docs/DATABASE.md)
 - [PostgreSQL Setup](docs/POSTGRESQL.md)
 - [User Guide](docs/USER_GUIDE.md)

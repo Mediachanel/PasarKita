@@ -1,5 +1,13 @@
 # CasaOS Deployment
 
+Status deployment terakhir yang tervalidasi:
+
+- Aplikasi berjalan di host port `3002` dan container port `3000`.
+- URL lokal aplikasi: `http://172.31.254.202:3002`.
+- Domain publik `pasarkita.kepegawaian.media` diarahkan ke service `http://localhost:3002`.
+- PostgreSQL memakai container existing `pasarkita-postgres`.
+- Prisma dijalankan dengan `db push` untuk setup awal database.
+
 ## Deploy dari CasaOS via GitHub
 
 Jalankan command ini langsung di terminal CasaOS/DietPi sebagai root. Pastikan perubahan terbaru sudah dipush ke GitHub branch `main`.
@@ -8,7 +16,7 @@ Jalankan command ini langsung di terminal CasaOS/DietPi sebagai root. Pastikan p
 mkdir -p /DATA/AppData/pasarkita
 cd /DATA/AppData/pasarkita
 curl -fsSL https://raw.githubusercontent.com/Mediachanel/PasarKita/main/scripts/deploy-casaos-github.sh -o deploy-casaos-github.sh
-sh deploy-casaos-github.sh --install-deps --seed
+sh deploy-casaos-github.sh --install-deps --force-env --nextauth-url http://172.31.254.202:3002 --migrate push --seed
 ```
 
 Jika `curl` belum ada:
@@ -29,7 +37,7 @@ Opsi yang sering dipakai:
 ```bash
 # Deploy ulang tanpa seed
 cd /DATA/AppData/pasarkita
-sh deploy-casaos-github.sh
+sh deploy-casaos-github.sh --force-env --nextauth-url http://172.31.254.202:3002 --migrate push
 
 # Pakai db push, bukan prisma migrate deploy
 sh deploy-casaos-github.sh --migrate push
@@ -42,6 +50,27 @@ sh deploy-casaos-github.sh --repo-url https://github.com/Mediachanel/PasarKita.g
 ```
 
 Default app folder: `/DATA/AppData/pasarkita`.
+
+## Validasi Setelah Deploy
+
+```bash
+docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+docker logs --tail 80 pasarkita-app
+```
+
+Pastikan container app menampilkan mapping port:
+
+```text
+0.0.0.0:3002->3000/tcp
+```
+
+Buka aplikasi:
+
+```text
+http://172.31.254.202:3002
+```
+
+Root aplikasi harus menampilkan halaman frontend PasarKita. Endpoint API hanya berada di `/api/*`.
 
 ## PostgreSQL
 
@@ -72,6 +101,12 @@ Jika container PostgreSQL tidak memiliki role `postgres`, gunakan role admin yan
 
 ```bash
 sh deploy-casaos-github.sh --postgres-admin-user pasarkita --force-env --nextauth-url http://172.31.254.202:3002
+```
+
+Untuk mengecek koneksi database secara manual:
+
+```bash
+docker exec -it pasarkita-postgres psql -U pasarkita -d pasarkita -c "SELECT 1;"
 ```
 
 Jika Anda ingin memakai database atau kredensial lain:
@@ -113,6 +148,56 @@ ingress:
 ```
 
 Jangan gunakan `service: http://localhost:3002/api/auth` pada level ingress utama.
+
+## Troubleshooting
+
+### Root menampilkan JSON `unauth`
+
+Pastikan tunnel/domain mengarah ke root aplikasi:
+
+```text
+http://localhost:3002
+```
+
+Jangan arahkan service utama ke `/api/auth`, `/api/session`, `/api/me`, atau endpoint `/api/*` lain.
+
+### Port `3001` sudah dipakai
+
+Deployment ini memakai `3002`. Jika log masih menyebut `3001`, file env/compose lama masih dipakai. Jalankan deploy dengan `--force-env`:
+
+```bash
+cd /DATA/AppData/pasarkita
+sh deploy-casaos-github.sh --force-env --nextauth-url http://172.31.254.202:3002 --migrate push
+```
+
+### Prisma gagal detect OpenSSL/libssl
+
+Dockerfile sudah menginstall `openssl` dan `libc6-compat`. Jika masih muncul error lama, rebuild tanpa cache:
+
+```bash
+cd /DATA/AppData/pasarkita/source
+docker compose -f docker-compose.casaos.yml build --no-cache
+docker compose -f docker-compose.casaos.yml up -d
+```
+
+### Role `postgres` tidak ada
+
+Beberapa container PostgreSQL CasaOS dibuat tanpa role `postgres`. Script deploy akan mencoba user `pasarkita` juga. Jika perlu, jalankan eksplisit:
+
+```bash
+cd /DATA/AppData/pasarkita
+sh deploy-casaos-github.sh --postgres-admin-user pasarkita --force-env --nextauth-url http://172.31.254.202:3002 --migrate push
+```
+
+### Layar terlihat gelap atau tidak bisa diklik
+
+Hard refresh browser setelah deploy:
+
+```text
+Ctrl + F5
+```
+
+Jika masih terlihat overlay kecil dari browser/extension, coba Incognito atau matikan extension sementara. Overlay filter mobile di `/browse` sudah dibuat otomatis tertutup saat layar desktop.
 
 ## Manual Run
 
