@@ -288,10 +288,16 @@ ensure_postgres_database() {
     return 0
   fi
 
+  if docker exec "$POSTGRES_CONTAINER" psql -U "$APP_DB_USER" -d "$APP_DB_NAME" -tAc "SELECT 1" >/dev/null 2>&1; then
+    log "Database PostgreSQL '$APP_DB_NAME' sudah bisa diakses oleh user '$APP_DB_USER'."
+    return 0
+  fi
+
   admin_user=""
-  for candidate in "$POSTGRES_ADMIN_USER" postgres "$APP_DB_USER"; do
+  for candidate in "$POSTGRES_ADMIN_USER" "$APP_DB_USER" postgres; do
     [ -n "$candidate" ] || continue
-    if docker exec "$POSTGRES_CONTAINER" psql -U "$candidate" -d postgres -tAc "SELECT 1" >/dev/null 2>&1; then
+    if docker exec "$POSTGRES_CONTAINER" psql -U "$candidate" -d "$APP_DB_NAME" -tAc "SELECT 1" >/dev/null 2>&1 ||
+       docker exec "$POSTGRES_CONTAINER" psql -U "$candidate" -d postgres -tAc "SELECT 1" >/dev/null 2>&1; then
       admin_user="$candidate"
       break
     fi
@@ -302,7 +308,12 @@ ensure_postgres_database() {
   fi
 
   log "Memastikan database PostgreSQL '$APP_DB_NAME' dan user '$APP_DB_USER' tersedia..."
-  docker exec -i "$POSTGRES_CONTAINER" psql -v ON_ERROR_STOP=1 -U "$admin_user" -d postgres <<SQL
+  admin_db="postgres"
+  if docker exec "$POSTGRES_CONTAINER" psql -U "$admin_user" -d "$APP_DB_NAME" -tAc "SELECT 1" >/dev/null 2>&1; then
+    admin_db="$APP_DB_NAME"
+  fi
+
+  docker exec -i "$POSTGRES_CONTAINER" psql -v ON_ERROR_STOP=1 -U "$admin_user" -d "$admin_db" <<SQL
 DO \$\$
 BEGIN
   IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '$APP_DB_USER') THEN
