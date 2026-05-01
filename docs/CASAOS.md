@@ -5,7 +5,8 @@
 Jalankan command ini langsung di terminal CasaOS/DietPi sebagai root. Pastikan perubahan terbaru sudah dipush ke GitHub branch `main`.
 
 ```bash
-cd /root
+mkdir -p /DATA/AppData/pasarkita
+cd /DATA/AppData/pasarkita
 curl -fsSL https://raw.githubusercontent.com/Mediachanel/PasarKita/main/scripts/deploy-casaos-github.sh -o deploy-casaos-github.sh
 sh deploy-casaos-github.sh --install-deps --seed
 ```
@@ -27,6 +28,7 @@ Opsi yang sering dipakai:
 
 ```bash
 # Deploy ulang tanpa seed
+cd /DATA/AppData/pasarkita
 sh deploy-casaos-github.sh
 
 # Pakai db push, bukan prisma migrate deploy
