@@ -35,7 +35,7 @@ sh deploy-casaos-github.sh
 sh deploy-casaos-github.sh --migrate push
 
 # Tulis ulang env dan set URL aplikasi
-sh deploy-casaos-github.sh --force-env --nextauth-url http://172.31.254.202:3001
+sh deploy-casaos-github.sh --force-env --nextauth-url http://172.31.254.202:3002
 
 # Pakai repo atau branch lain
 sh deploy-casaos-github.sh --repo-url https://github.com/Mediachanel/PasarKita.git --branch main
@@ -61,11 +61,26 @@ Skrip membuat file env di `/DATA/AppData/pasarkita/.env.casaos` dan menyalinnya 
 ```env
 DATABASE_URL=postgresql://pasarkita:Tianh%4027@pasarkita-postgres:5432/pasarkita?schema=public
 NEXTAUTH_SECRET=change-this-long-random-secret
-NEXTAUTH_URL=http://172.31.254.202:3001
+NEXTAUTH_URL=http://172.31.254.202:3002
 NODE_ENV=production
 ```
 
 `Tianh%4027` is the URL-encoded version of `Tianh@27`.
+
+> Jika Anda menggunakan Cloudflare Tunnel, `NEXTAUTH_URL` harus memakai domain publik agar redirect NextAuth berjalan benar.
+
+## Cloudflare Tunnel
+
+Untuk Cloudflare Tunnel, pastikan konfigurasi ingress mengarah langsung ke root aplikasi:
+
+```yaml
+ingress:
+  - hostname: pasarkita.kepegawaian.media
+    service: http://localhost:3002
+  - service: http_status:404
+```
+
+Jangan gunakan `service: http://localhost:3002/api/auth` pada level ingress utama.
 
 ## Manual Run
 
@@ -79,5 +94,7 @@ docker exec -it pasarkita-app npm run db:seed
 Open:
 
 ```text
-http://172.31.254.202:3001
+http://172.31.254.202:3002
 ```
+
+Jika tunnel Cloudflare dikonfigurasi untuk `pasarkita.kepegawaian.media`, domain publik harus diarahkan ke `http://localhost:3002` dan menampilkan halaman utama Next.js, bukan JSON API.

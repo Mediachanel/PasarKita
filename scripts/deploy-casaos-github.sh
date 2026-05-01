@@ -179,7 +179,7 @@ detect_nextauth_url() {
   if [ -z "$host_ip" ]; then
     host_ip="127.0.0.1"
   fi
-  printf 'http://%s:3001\n' "$host_ip"
+  printf 'http://%s:3002\n' "$host_ip"
 }
 
 write_env_file() {
@@ -291,4 +291,4 @@ if [ -z "$NEXTAUTH_URL" ] && [ -f "$APP_DIR/.env.casaos" ]; then
   NEXTAUTH_URL="$(awk -F= '/^NEXTAUTH_URL=/{print $2; exit}' "$APP_DIR/.env.casaos")"
 fi
 
-log "Deploy selesai: ${NEXTAUTH_URL:-http://server-ip:3001}"
+log "Deploy selesai: ${NEXTAUTH_URL:-http://server-ip:3002}"
