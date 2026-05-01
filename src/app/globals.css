@@ -1,0 +1,132 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Pasar Kita - Global Styles */
+
+:root {
+  --brown-50: #FEFAF7;
+  --brown-100: #F5EEDE;
+  --brown-200: #EDD8C1;
+  --brown-300: #E4BEA0;
+  --brown-400: #D9A580;
+  --brown-500: #C8865C;
+  --brown-600: #B8704B;
+  --brown-700: #9F5E3F;
+  --brown-800: #844D34;
+  --brown-900: #6B3E2A;
+  --beige: #E8D5C4;
+  --cream: #F9F6F0;
+  --caramel: #D4A574;
+  --marketplace-orange: #f05a2a;
+  --marketplace-green: #03ac0e;
+  --marketplace-blue: #0095da;
+  --marketplace-canvas: #f3f4f6;
+}
+
+html {
+  scroll-behavior: smooth;
+  background-color: var(--marketplace-canvas);
+}
+
+body {
+  background-color: var(--marketplace-canvas);
+  color: #1f2937;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  @apply font-sans font-bold tracking-normal;
+  color: #1f2937;
+}
+
+a {
+  @apply transition-colors duration-200;
+}
+
+/* Buttons */
+.btn-primary {
+  @apply bg-marketplace-orange hover:bg-marketplace-orangeDark text-white font-semibold py-2 px-6 rounded-lg transition-colors duration-200;
+}
+
+.btn-secondary {
+  @apply bg-marketplace-green hover:bg-marketplace-greenDark text-white font-semibold py-2 px-6 rounded-lg transition-colors duration-200;
+}
+
+.btn-outline {
+  @apply border border-marketplace-line text-marketplace-ink hover:border-marketplace-orange hover:text-marketplace-orange font-semibold py-2 px-6 rounded-lg transition-colors duration-200;
+}
+
+/* Cards */
+.card {
+  @apply bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 border border-marketplace-line;
+}
+
+/* Badges */
+.badge-primary {
+  @apply inline-block bg-marketplace-orange text-white px-3 py-1 rounded-full text-sm font-semibold;
+}
+
+.badge-secondary {
+  @apply inline-block bg-emerald-50 text-marketplace-green px-3 py-1 rounded-full text-sm font-semibold;
+}
+
+/* Input styles */
+input,
+textarea,
+select {
+  @apply border border-marketplace-line rounded-lg focus:outline-none focus:border-marketplace-orange focus:ring-2 focus:ring-marketplace-orange focus:ring-opacity-20 transition-all duration-200;
+}
+
+/* Links */
+.link-brown {
+  @apply text-marketplace-green hover:text-marketplace-greenDark hover:underline transition-colors duration-200;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-in;
+}
+
+.animate-slide-up {
+  animation: slideInUp 0.3s ease-out;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--marketplace-canvas);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
