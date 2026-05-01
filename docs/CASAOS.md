@@ -68,6 +68,12 @@ Jika nama container PostgreSQL di CasaOS berbeda, jalankan deploy dengan:
 sh deploy-casaos-github.sh --postgres-container NAMA_CONTAINER_POSTGRES --force-env --nextauth-url http://172.31.254.202:3002
 ```
 
+Jika container PostgreSQL tidak memiliki role `postgres`, gunakan role admin yang dibuat CasaOS, misalnya:
+
+```bash
+sh deploy-casaos-github.sh --postgres-admin-user pasarkita --force-env --nextauth-url http://172.31.254.202:3002
+```
+
 Jika Anda ingin memakai database atau kredensial lain:
 
 ```bash

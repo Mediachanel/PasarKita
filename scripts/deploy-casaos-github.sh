@@ -10,7 +10,7 @@ NEXTAUTH_URL="${NEXTAUTH_URL:-}"
 NEXTAUTH_SECRET="${NEXTAUTH_SECRET:-}"
 NETWORK_NAME="${NETWORK_NAME:-pasarkita-network}"
 POSTGRES_CONTAINER="${POSTGRES_CONTAINER:-pasarkita-postgres}"
-POSTGRES_ADMIN_USER="${POSTGRES_ADMIN_USER:-postgres}"
+POSTGRES_ADMIN_USER="${POSTGRES_ADMIN_USER:-}"
 APP_DB_NAME="${APP_DB_NAME:-pasarkita}"
 APP_DB_USER="${APP_DB_USER:-pasarkita}"
 APP_DB_PASSWORD="${APP_DB_PASSWORD:-Tianh@27}"
@@ -288,8 +288,21 @@ ensure_postgres_database() {
     return 0
   fi
 
+  admin_user=""
+  for candidate in "$POSTGRES_ADMIN_USER" postgres "$APP_DB_USER"; do
+    [ -n "$candidate" ] || continue
+    if docker exec "$POSTGRES_CONTAINER" psql -U "$candidate" -d postgres -tAc "SELECT 1" >/dev/null 2>&1; then
+      admin_user="$candidate"
+      break
+    fi
+  done
+
+  if [ -z "$admin_user" ]; then
+    die "Tidak bisa login ke PostgreSQL. Coba jalankan dengan --postgres-admin-user USER_ADMIN_YANG_BENAR."
+  fi
+
   log "Memastikan database PostgreSQL '$APP_DB_NAME' dan user '$APP_DB_USER' tersedia..."
-  docker exec -i "$POSTGRES_CONTAINER" psql -v ON_ERROR_STOP=1 -U "$POSTGRES_ADMIN_USER" -d postgres <<SQL
+  docker exec -i "$POSTGRES_CONTAINER" psql -v ON_ERROR_STOP=1 -U "$admin_user" -d postgres <<SQL
 DO \$\$
 BEGIN
   IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '$APP_DB_USER') THEN
