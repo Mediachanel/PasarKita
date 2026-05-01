@@ -1,11 +1,15 @@
 FROM node:20-alpine AS deps
 WORKDIR /app
 
+RUN apk add --no-cache libc6-compat openssl
+
 COPY package.json package-lock.json ./
 RUN npm ci
 
 FROM node:20-alpine AS builder
 WORKDIR /app
+
+RUN apk add --no-cache libc6-compat openssl
 
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV DATABASE_URL=postgresql://pasarkita:pasarkita@localhost:5432/pasarkita?schema=public
@@ -17,6 +21,8 @@ RUN npx next build
 
 FROM node:20-alpine AS runner
 WORKDIR /app
+
+RUN apk add --no-cache libc6-compat openssl
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
